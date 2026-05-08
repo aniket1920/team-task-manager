@@ -1,22 +1,15 @@
 import { useState } from 'react';
-
+import { Link, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 
-import {
-  useNavigate,
-  Link,
-} from 'react-router-dom';
-
-import { toast } from 'react-toastify';
-
 function Login() {
+
   const navigate = useNavigate();
 
-  const [formData, setFormData] =
-    useState({
-      email: '',
-      password: '',
-    });
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
   const handleChange = (e) => {
     setFormData({
@@ -26,42 +19,47 @@ function Login() {
   };
 
   const handleSubmit = async (e) => {
+
     e.preventDefault();
 
     try {
+
       const res = await API.post(
         '/auth/login',
         formData
       );
 
+      // SAVE TOKEN
       localStorage.setItem(
         'token',
         res.data.token
       );
 
+      // SAVE USER
       localStorage.setItem(
-        'role',
-        res.data.role
+        'user',
+        JSON.stringify(res.data.user)
       );
 
-      toast.success(
-        'Login Successful'
-      );
+      alert('Login Successful');
 
       navigate('/dashboard');
+
     } catch (error) {
-      toast.error(
-        error.response?.data
-          ?.message ||
-          'Login Failed'
+
+      console.log(error);
+
+      alert(
+        error?.response?.data?.message ||
+        'Login Failed'
       );
     }
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5 text-light">
 
-      <div className="card p-4 shadow">
+      <div className="card bg-dark text-light border-secondary p-5">
 
         <h1 className="mb-4">
           Login
@@ -73,16 +71,20 @@ function Login() {
             type="email"
             name="email"
             placeholder="Email"
-            className="form-control mb-3"
+            className="form-control bg-black text-light border-secondary mb-3"
+            value={formData.email}
             onChange={handleChange}
+            required
           />
 
           <input
             type="password"
             name="password"
             placeholder="Password"
-            className="form-control mb-3"
+            className="form-control bg-black text-light border-secondary mb-4"
+            value={formData.password}
             onChange={handleChange}
+            required
           />
 
           <button className="btn btn-primary w-100">
@@ -91,15 +93,18 @@ function Login() {
 
         </form>
 
-        <p className="text-center mt-4">
+        <p className="mt-4 text-center">
+
           New User?{' '}
 
           <Link to="/signup">
             Create Account
           </Link>
+
         </p>
 
       </div>
+
     </div>
   );
 }
