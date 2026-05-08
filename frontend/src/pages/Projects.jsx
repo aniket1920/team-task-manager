@@ -1,62 +1,53 @@
-import {
-  useEffect,
-  useState,
-} from 'react';
-
+import { useEffect, useState } from 'react';
 import API from '../api/axios';
 
 function Projects() {
-  const role =
-    localStorage.getItem('role');
 
-  const token =
-    localStorage.getItem('token');
+  const [projects, setProjects] = useState([]);
 
-  const [projects, setProjects] =
-    useState([]);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+  });
 
-  const [formData, setFormData] =
-    useState({
-      name: '',
-      description: '',
-    });
+  const user = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
-  const fetchProjects =
-    async () => {
-      try {
-        const res = await API.get(
-          '/projects',
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+  const fetchProjects = async () => {
+    try {
 
-        setProjects(res.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
+      const token = localStorage.getItem('token');
+
+      const res = await API.get('/projects', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setProjects(res.data);
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]:
-        e.target.value,
+      [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = async (
-    e
-  ) => {
+  const createProject = async (e) => {
     e.preventDefault();
 
     try {
+
+      const token = localStorage.getItem('token');
+
       await API.post(
         '/projects',
         formData,
@@ -67,52 +58,50 @@ function Projects() {
         }
       );
 
-      fetchProjects();
-
       setFormData({
         name: '',
         description: '',
       });
+
+      fetchProjects();
+
+      alert('Project Created');
+
     } catch (error) {
       console.log(error);
+      alert('Project Creation Failed');
     }
   };
 
   return (
-    <div className="container mt-5">
+    <div className="container mt-5 text-light">
 
-      <h1 className="mb-4">
-        Projects
-      </h1>
+      <h1 className="mb-4">Projects</h1>
 
-      {/* ADMIN ONLY */}
-      {role === 'admin' && (
-        <div className="card p-4 shadow mb-5">
+      {user?.role === 'admin' && (
+        <div className="card bg-dark text-light p-4 mb-4 border-secondary">
 
-          <h2 className="mb-4">
-            Create Project
-          </h2>
+          <h2>Create Project</h2>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={createProject}>
 
             <input
               type="text"
               name="name"
               placeholder="Project Name"
-              className="form-control mb-4"
+              className="form-control mb-3 bg-black text-light border-secondary"
               value={formData.name}
               onChange={handleChange}
+              required
             />
 
             <textarea
               name="description"
               placeholder="Description"
-              className="form-control mb-4"
-              rows="4"
-              value={
-                formData.description
-              }
+              className="form-control mb-3 bg-black text-light border-secondary"
+              value={formData.description}
               onChange={handleChange}
+              required
             />
 
             <button className="btn btn-primary">
@@ -123,43 +112,42 @@ function Projects() {
         </div>
       )}
 
-      {/* MEMBER MESSAGE */}
-      {role === 'member' && (
-        <div className="alert alert-info">
-          You can only view projects
-          assigned to you.
-        </div>
-      )}
-
-      {/* PROJECT LIST */}
       <div className="row">
 
-        {projects.length === 0 ? (
-          <p>No Projects Found</p>
-        ) : (
-          projects.map((project) => (
-            <div
-              className="col-md-4 mb-4"
-              key={project._id}
-            >
-              <div className="card p-4 shadow h-100">
+        {projects.map((project) => (
 
-                <h3>
-                  {project.name}
-                </h3>
+          <div
+            className="col-md-4 mb-4"
+            key={project._id}
+          >
+            <div className="card bg-dark text-light p-3 h-100 border-secondary">
 
-                <p className="text-secondary mt-3">
-                  {
-                    project.description
-                  }
-                </p>
+              <h3>{project.name}</h3>
 
-              </div>
+              <p>{project.description}</p>
+
+              <h5 className="mt-3">
+                Team Members
+              </h5>
+
+              {project.members?.length > 0 ? (
+                <ul>
+                  {project.members.map((member) => (
+                    <li key={member._id}>
+                      {member.name}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No members assigned</p>
+              )}
+
             </div>
-          ))
-        )}
+          </div>
+        ))}
 
       </div>
+
     </div>
   );
 }
