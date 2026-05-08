@@ -12,6 +12,11 @@ function Projects() {
 
   const user = JSON.parse(localStorage.getItem('user'));
 
+  // FORCE SAFE ROLE CHECK
+  const isAdmin =
+    user?.role &&
+    user.role.toLowerCase().trim() === 'admin';
+
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -58,6 +63,8 @@ function Projects() {
         }
       );
 
+      alert('Project Created Successfully');
+
       setFormData({
         name: '',
         description: '',
@@ -65,11 +72,14 @@ function Projects() {
 
       fetchProjects();
 
-      alert('Project Created');
-
     } catch (error) {
+
       console.log(error);
-      alert('Project Creation Failed');
+
+      alert(
+        error?.response?.data?.message ||
+        'Project Creation Failed'
+      );
     }
   };
 
@@ -78,10 +88,14 @@ function Projects() {
 
       <h1 className="mb-4">Projects</h1>
 
-      {user?.role === 'admin' && (
-        <div className="card bg-dark text-light p-4 mb-4 border-secondary">
+      {/* ADMIN ONLY */}
+      {isAdmin && (
 
-          <h2>Create Project</h2>
+        <div className="card bg-dark text-light p-4 mb-5 border-secondary">
+
+          <h2 className="mb-4">
+            Create Project
+          </h2>
 
           <form onSubmit={createProject}>
 
@@ -89,7 +103,7 @@ function Projects() {
               type="text"
               name="name"
               placeholder="Project Name"
-              className="form-control mb-3 bg-black text-light border-secondary"
+              className="form-control bg-black text-light border-secondary mb-3"
               value={formData.name}
               onChange={handleChange}
               required
@@ -97,8 +111,9 @@ function Projects() {
 
             <textarea
               name="description"
-              placeholder="Description"
-              className="form-control mb-3 bg-black text-light border-secondary"
+              placeholder="Project Description"
+              className="form-control bg-black text-light border-secondary mb-3"
+              rows="4"
               value={formData.description}
               onChange={handleChange}
               required
@@ -109,6 +124,7 @@ function Projects() {
             </button>
 
           </form>
+
         </div>
       )}
 
@@ -120,17 +136,19 @@ function Projects() {
             className="col-md-4 mb-4"
             key={project._id}
           >
-            <div className="card bg-dark text-light p-3 h-100 border-secondary">
+
+            <div className="card bg-dark text-light border-secondary p-4 h-100">
 
               <h3>{project.name}</h3>
 
               <p>{project.description}</p>
 
-              <h5 className="mt-3">
+              <h5 className="mt-4">
                 Team Members
               </h5>
 
               {project.members?.length > 0 ? (
+
                 <ul>
                   {project.members.map((member) => (
                     <li key={member._id}>
@@ -138,12 +156,15 @@ function Projects() {
                     </li>
                   ))}
                 </ul>
+
               ) : (
                 <p>No members assigned</p>
               )}
 
             </div>
+
           </div>
+
         ))}
 
       </div>
