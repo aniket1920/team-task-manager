@@ -1,4 +1,4 @@
-import User from '../models/temp.js';
+import User from '../models/User.js';
 
 export const getMembers = async (
   req,
