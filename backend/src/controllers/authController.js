@@ -1,5 +1,7 @@
 import User from '../models/User.js';
+
 import bcrypt from 'bcryptjs';
+
 import jwt from 'jsonwebtoken';
 
 export const signup = async (
@@ -14,9 +16,10 @@ export const signup = async (
       role,
     } = req.body;
 
-    // Check existing user
     const existingUser =
-      await User.findOne({ email });
+      await User.findOne({
+        email,
+      });
 
     if (existingUser) {
       return res.status(400).json({
@@ -25,19 +28,21 @@ export const signup = async (
       });
     }
 
-    // Hash password
     const hashedPassword =
-      await bcrypt.hash(password, 10);
+      await bcrypt.hash(
+        password,
+        10
+      );
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-    });
+    const user =
+      await User.create({
+        name,
+        email,
+        password:
+          hashedPassword,
+        role,
+      });
 
-    // Generate JWT
     const token = jwt.sign(
       {
         id: user._id,
@@ -50,14 +55,15 @@ export const signup = async (
     );
 
     res.status(201).json({
-      message:
-        'User created successfully',
       token,
-      role: user.role,
+      user,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
-      message: error.message,
+      message:
+        'Server Error',
     });
   }
 };
@@ -70,18 +76,18 @@ export const login = async (
     const { email, password } =
       req.body;
 
-    // Find user
     const user =
-      await User.findOne({ email });
+      await User.findOne({
+        email,
+      });
 
     if (!user) {
       return res.status(400).json({
         message:
-          'Invalid credentials',
+          'Invalid Credentials',
       });
     }
 
-    // Compare password
     const isMatch =
       await bcrypt.compare(
         password,
@@ -91,11 +97,10 @@ export const login = async (
     if (!isMatch) {
       return res.status(400).json({
         message:
-          'Invalid credentials',
+          'Invalid Credentials',
       });
     }
 
-    // Generate JWT
     const token = jwt.sign(
       {
         id: user._id,
@@ -107,14 +112,16 @@ export const login = async (
       }
     );
 
-    res.status(200).json({
-      message: 'Login successful',
+    res.json({
       token,
-      role: user.role,
+      user,
     });
   } catch (error) {
+    console.log(error);
+
     res.status(500).json({
-      message: error.message,
+      message:
+        'Server Error',
     });
   }
 };
